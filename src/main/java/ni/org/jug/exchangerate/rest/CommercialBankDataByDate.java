@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
  *
  * @author aalaniz
  */
-public class CommercialBankResponseByDate {
+public class CommercialBankDataByDate {
 
     private final LocalDate date;
     private final List<CommercialBankExchangeRate> exchangeRates;
 
-    private CommercialBankResponseByDate(LocalDate date, List<CommercialBankExchangeRate> exchangeRates) {
+    private CommercialBankDataByDate(LocalDate date, List<CommercialBankExchangeRate> exchangeRates) {
         this.date = date;
         this.exchangeRates = exchangeRates;
     }
@@ -30,13 +30,13 @@ public class CommercialBankResponseByDate {
         return exchangeRates;
     }
 
-    public static List<CommercialBankResponseByDate> create(List<CommercialBankExchangeRate> exchangeRates) {
+    public static List<CommercialBankDataByDate> create(List<CommercialBankExchangeRate> exchangeRates) {
         Map<LocalDate, List<CommercialBankExchangeRate>> exchangeRateByDates = Objects.requireNonNull(exchangeRates)
                 .stream()
                 .collect(Collectors.groupingBy(CommercialBankExchangeRate::getDate));
-        List<CommercialBankResponseByDate> responseByDates = exchangeRateByDates.entrySet()
+        List<CommercialBankDataByDate> responseByDates = exchangeRateByDates.entrySet()
                 .stream()
-                .map(entry -> new CommercialBankResponseByDate(entry.getKey(), entry.getValue()))
+                .map(entry -> new CommercialBankDataByDate(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
         return responseByDates;
     }

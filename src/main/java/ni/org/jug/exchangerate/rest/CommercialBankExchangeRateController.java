@@ -56,7 +56,7 @@ public class CommercialBankExchangeRateController {
             throw InvalidRangeException.create(start, end);
         }
         List<CommercialBankExchangeRate> exchangeRates = commercialBankExchangeRateRepository.findByDateBetween(start, end);
-        return new Response(CommercialBankResponseByDate.create(exchangeRates));
+        return new Response(CommercialBankDataByDate.create(exchangeRates));
     }
 
     @GetMapping("/period/{year}-{month}")
@@ -64,7 +64,7 @@ public class CommercialBankExchangeRateController {
         YearMonth yearMonth = YearMonth.of(year, month);
         List<CommercialBankExchangeRate> exchangeRates = commercialBankExchangeRateRepository.findByDateBetween(yearMonth.atDay(1),
                 yearMonth.atEndOfMonth());
-        return new Response(CommercialBankResponseByDate.create(exchangeRates));
+        return new Response(CommercialBankDataByDate.create(exchangeRates));
     }
 
     @GetMapping("/period/current")
@@ -72,7 +72,7 @@ public class CommercialBankExchangeRateController {
         YearMonth yearMonth = YearMonth.now();
         List<CommercialBankExchangeRate> exchangeRates = commercialBankExchangeRateRepository.findByDateBetween(yearMonth.atDay(1),
                 yearMonth.atEndOfMonth());
-        return new Response(CommercialBankResponseByDate.create(exchangeRates));
+        return new Response(CommercialBankDataByDate.create(exchangeRates));
     }
 
     @GetMapping("/bank/{bank}")
