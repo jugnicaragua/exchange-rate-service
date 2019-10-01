@@ -29,4 +29,7 @@ public interface CentralBankExchangeRateRepository extends CrudRepository<Centra
     @Query("SELECT c FROM CentralBankExchangeRate c JOIN FETCH c.currency curr WHERE c.date BETWEEN :start AND :end")
     List<CentralBankExchangeRate> findByDateBetween(@Param("start") LocalDate start, @Param("end") LocalDate end);
 
+    @Query("SELECT COUNT(c) FROM CentralBankExchangeRate c WHERE c.date BETWEEN :start AND :end")
+    Long countByDateBetween(@Param("start") LocalDate start, @Param("end") LocalDate end);
+
 }
