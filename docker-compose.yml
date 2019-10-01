@@ -26,7 +26,7 @@ services:
       - EXCHANGE_RATE_DB_DATABASE=exchangerate
       - EXCHANGE_RATE_DB_USER=exchangerate
       - EXCHANGE_RATE_DB_PASSWORD=exchangerate
-    command: java -jar exchange-rate-service.jar
+    command: java -Duser.timezone=America/Managua -jar exchange-rate-service.jar
     depends_on:
       - postgres
     networks:
