@@ -26,6 +26,7 @@ import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -70,22 +71,44 @@ public class ExchangeRateImporter {
         return centralBankExchangeRate;
     }
 
-    public void importHistoricCentralBankDataUntilNow() {
+    private boolean centralBankDataImported(YearMonth startPeriod, YearMonth endPeriod) {
+        LocalDate start = startPeriod.atDay(1);
+        LocalDate end = endPeriod.atEndOfMonth();
+
+        long elapsedDays = ChronoUnit.DAYS.between(start, end) + 1;
+        Long recordCount = centralBankExchangeRateRepository.countByDateBetween(start, end);
+
+        boolean imported = elapsedDays == recordCount;
+
+        if (imported) {
+            LOGGER.info("BCN - {} tasas de cambio desde {} hasta {} fueron importadas en una ejecucion previa", elapsedDays, start, end);
+        }
+
+        return imported;
+    }
+
+    private boolean centralBankDataImported(YearMonth period) {
+        return centralBankDataImported(period, period);
+    }
+
+    public void importHistoricalCentralBankDataUntilNow() {
         YearMonth processingPeriod = YearMonth.of(NiCentralBankExchangeRateClient.MINIMUM_YEAR, 1);
         YearMonth endPeriod = YearMonth.now();
 
-        ExchangeRateClient client = new ExchangeRateClient();
-        while (processingPeriod.compareTo(endPeriod) <= 0) {
-            LOGGER.info("BCN - Importando periodo {}-{}", processingPeriod.getYear(), processingPeriod.getMonthValue());
+        if (!centralBankDataImported(processingPeriod, endPeriod)) {
+            ExchangeRateClient client = new ExchangeRateClient();
+            while (processingPeriod.compareTo(endPeriod) <= 0) {
+                LOGGER.info("BCN - Importando periodo {}", processingPeriod);
 
-            MonthlyExchangeRate monthlyExchangeRate = client.getOfficialMonthlyExchangeRate(processingPeriod);
-            for (Map.Entry<LocalDate, BigDecimal> exchangeRate : monthlyExchangeRate) {
-                CentralBankExchangeRate centralBankExchangeRate = centralBankExchangeRateOf(exchangeRate.getKey(),
-                        exchangeRate.getValue());
-                centralBankExchangeRateRepository.save(centralBankExchangeRate);
+                MonthlyExchangeRate monthlyExchangeRate = client.getOfficialMonthlyExchangeRate(processingPeriod);
+                for (Map.Entry<LocalDate, BigDecimal> exchangeRate : monthlyExchangeRate) {
+                    CentralBankExchangeRate centralBankExchangeRate = centralBankExchangeRateOf(exchangeRate.getKey(),
+                            exchangeRate.getValue());
+                    centralBankExchangeRateRepository.save(centralBankExchangeRate);
+                }
+
+                processingPeriod = processingPeriod.plusMonths(1);
             }
-
-            processingPeriod = processingPeriod.plusMonths(1);
         }
     }
 
@@ -121,7 +144,7 @@ public class ExchangeRateImporter {
 
         for (Map.Entry<String, Bank> bankEntry : banks.entrySet()) {
             if (!supportedBanks.contains(bankEntry.getKey())) {
-                LOGGER.info("Inactivando Banco Comercial {} - La libreria de sraping ya no posee el scraper de este banco",
+                LOGGER.info("Inactivando Banco Comercial {} - La libreria de scraping ya no posee el scraper de este banco",
                         bankEntry.getKey());
 
                 Bank bank = bankEntry.getValue();
@@ -130,22 +153,25 @@ public class ExchangeRateImporter {
         }
     }
 
-    @Scheduled(cron = "* */30 * 21-31 * ?")
+    @Scheduled(cron = "* 15 6,16,22 21-31 * ?")
     public void importCentralBankDataForNextPeriod() {
         YearMonth nextPeriod = YearMonth.now().plusMonths(1);
-        ExchangeRateClient client = new ExchangeRateClient();
-        MonthlyExchangeRate monthlyExchangeRate = client.getOfficialMonthlyExchangeRate(nextPeriod);
 
-        LOGGER.info("BCN - Importando proximo periodo {}-{}", nextPeriod.getYear(), nextPeriod.getMonthValue());
+        if (!centralBankDataImported(nextPeriod)) {
+            ExchangeRateClient client = new ExchangeRateClient();
+            MonthlyExchangeRate monthlyExchangeRate = client.getOfficialMonthlyExchangeRate(nextPeriod);
 
-        for (Map.Entry<LocalDate, BigDecimal> exchangeRate : monthlyExchangeRate) {
-            CentralBankExchangeRate centralBankExchangeRate = centralBankExchangeRateOf(exchangeRate.getKey(),
-                    exchangeRate.getValue());
-            centralBankExchangeRateRepository.save(centralBankExchangeRate);
+            LOGGER.info("BCN - Importando proximo periodo {}", nextPeriod);
+
+            for (Map.Entry<LocalDate, BigDecimal> exchangeRate : monthlyExchangeRate) {
+                CentralBankExchangeRate centralBankExchangeRate = centralBankExchangeRateOf(exchangeRate.getKey(),
+                        exchangeRate.getValue());
+                centralBankExchangeRateRepository.save(centralBankExchangeRate);
+            }
         }
     }
 
-    @Scheduled(cron = "* */20 * * * *")
+    @Scheduled(cron = "* 0 4,6,16,20 * * *")
     public void importCurrentCommercialBankData() {
         Map<String, Bank> banks = StreamSupport.stream(bankRepository.findAll().spliterator(), false)
                 .collect(Collectors.toMap(b -> b.getDescription().getShortDescription(), Function.identity()));

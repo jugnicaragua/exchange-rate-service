@@ -33,7 +33,7 @@ public class ExchangeRateApplication {
 
             do {
                 try {
-                    importer.importHistoricCentralBankDataUntilNow();
+                    importer.importHistoricalCentralBankDataUntilNow();
                     importer.importListOfSupportedBanks();
                 } catch (IllegalArgumentException ex) {
                     LOGGER.debug("Ocurrio un error durante la importacion de los datos del BCN y Catalogo de Bancos", ex);
@@ -41,6 +41,13 @@ public class ExchangeRateApplication {
                     error = true;
                 }
             } while (error && ++count <= MAX_COUNT);
+
+            try {
+                importer.importCentralBankDataForNextPeriod();
+                importer.importCurrentCommercialBankData();
+            } catch (IllegalArgumentException ex) {
+                LOGGER.error("Ocurrio un error durante la importacion de las tasas", ex);
+            }
         };
     }
 
