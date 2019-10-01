@@ -153,7 +153,7 @@ public class ExchangeRateImporter {
         }
     }
 
-    @Scheduled(cron = "* 15 6,16,22 21-31 * ?")
+    @Scheduled(cron = "0 15 6,16,22 21-31 * ?")
     public void importCentralBankDataForNextPeriod() {
         YearMonth nextPeriod = YearMonth.now().plusMonths(1);
 
@@ -171,7 +171,7 @@ public class ExchangeRateImporter {
         }
     }
 
-    @Scheduled(cron = "* 0 4,6,16,20 * * *")
+    @Scheduled(cron = "15 0 4,6,16,20 * * *")
     public void importCurrentCommercialBankData() {
         Map<String, Bank> banks = StreamSupport.stream(bankRepository.findAll().spliterator(), false)
                 .collect(Collectors.toMap(b -> b.getDescription().getShortDescription(), Function.identity()));
