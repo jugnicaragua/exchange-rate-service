@@ -44,9 +44,14 @@ public class ExchangeRateApplication {
 
             try {
                 importer.importCentralBankDataForNextPeriod();
+            } catch (IllegalArgumentException ex) {
+                LOGGER.error("Ocurrio un error durante la importacion de las tasas del BCN del proximo periodo", ex);
+            }
+
+            try {
                 importer.importCurrentCommercialBankData();
             } catch (IllegalArgumentException ex) {
-                LOGGER.error("Ocurrio un error durante la importacion de las tasas", ex);
+                LOGGER.error("Ocurrio un error durante la importacion de la compra/venta del dia de hoy", ex);
             }
         };
     }
