@@ -18,6 +18,10 @@ public class NotFoundException extends RuntimeException {
         super(String.format(ENTITY_WITH_FIELD_NOT_FOUND_MESSAGE, entity, field.description(), value));
     }
 
+    protected NotFoundException(String entity, String field, Object value) {
+        super(String.format(ENTITY_WITH_FIELD_NOT_FOUND_MESSAGE, entity, field, value));
+    }
+
     public interface Field {
         String description();
     }
