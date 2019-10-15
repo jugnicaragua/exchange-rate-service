@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -139,7 +143,8 @@ public class EmailSubscriptionService {
 
     private static final String HORIZONTAL_RULE =
             "----------------------------------------------------------------------------------------------------";
-    private static final String IMG_TEMPLATE = "<img src=\"cid:%1$s\" alt=\"%1$s\" width=\"40px\" height=\"40px\">";
+    private static final String BANK_LOGO_TEMPLATE = "<img src=\"cid:%1$s\" alt=\"%1$s\" width=\"40px\" height=\"40px\">";
+    private static final String TENDENCY_INDICATOR = "<img src=\"cid:%s\" width=\"15px\" height=\"15px\">";
     private static final DateTimeFormatter NIO_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-uuuu");
 
     @Autowired
@@ -170,6 +175,9 @@ public class EmailSubscriptionService {
             String path = key + ".png";
             logos.put(key, new ClassPathResource(path));
         }
+        logos.put("up", new ClassPathResource("up.png"));
+        logos.put("equal", new ClassPathResource("equal.png"));
+        logos.put("down", new ClassPathResource("down.png"));
     }
 
     private String generateToken() {
@@ -177,6 +185,17 @@ public class EmailSubscriptionService {
         StringBuilder token = new StringBuilder(100);
         token.append(counter.incrementAndGet()).append('-').append(milliOfDay);
         return token.toString();
+    }
+
+    private void sendEmailToEnableSubscription(String email, String fullName, String url) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper messageHelper = new MimeMessageHelper(message);
+
+        messageHelper.setTo(email);
+        messageHelper.setSubject("Servicio de Compra/Venta de dolares en los Bancos Comerciales");
+        messageHelper.setText(EMAIL_TEMPLATE_FOR_ACTIVATION.asHtml(fullName, url), true);
+
+        mailSender.send(message);
     }
 
     public void createSubscription(String fullName, String email, UriComponentsBuilder uriComponentsBuilder) throws MessagingException {
@@ -205,15 +224,6 @@ public class EmailSubscriptionService {
         sendEmailToEnableSubscription(email, fullName, urlToActivate);
     }
 
-    private void validateUserSubscription(UserSubscription userSubscription, String email, String token) {
-        if (userSubscription == null) {
-            throw new UserSubscriptionNotFoundException(email);
-        }
-        if (!userSubscription.getToken().equals(token)) {
-            throw new InvalidDataException("El token [" + token + "] es incorrecto");
-        }
-    }
-
     public void activateSubscription(String email, String token) {
         UserSubscription userSubscription = userSubscriptionRepository.findByEmail(email);
         validateUserSubscription(userSubscription, email, token);
@@ -226,15 +236,13 @@ public class EmailSubscriptionService {
         userSubscription.setActive(Boolean.FALSE);
     }
 
-    private void sendEmailToEnableSubscription(String email, String fullName, String url) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper messageHelper = new MimeMessageHelper(message);
-
-        messageHelper.setTo(email);
-        messageHelper.setSubject("Servicio de Compra/Venta de dolares en los Bancos Comerciales");
-        messageHelper.setText(EMAIL_TEMPLATE_FOR_ACTIVATION.asHtml(fullName, url), true);
-
-        mailSender.send(message);
+    private void validateUserSubscription(UserSubscription userSubscription, String email, String token) {
+        if (userSubscription == null) {
+            throw new UserSubscriptionNotFoundException(email);
+        }
+        if (!userSubscription.getToken().equals(token)) {
+            throw new InvalidDataException("El token [" + token + "] es incorrecto");
+        }
     }
 
     private BigDecimal getCurrentOfficialExchangeRate() {
@@ -245,9 +253,25 @@ public class EmailSubscriptionService {
     }
 
     private String constructHtmlTableWithExchangeRateData() {
-        List<CommercialBankExchangeRate> exchangeRates = commercialBankExchangeRateRepository.findByDate(LocalDate.now());
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.plusDays(-1);
+        Map<String, Map<LocalDate, CommercialBankExchangeRate>> exchangeRateByBankAndDate;
 
-        if (exchangeRates.isEmpty()) {
+        exchangeRateByBankAndDate = commercialBankExchangeRateRepository.findByDateBetween(yesterday, today)
+                .stream()
+                .collect(Collectors.groupingBy(exchangeRate -> exchangeRate.getBank().getDescription().getShortDescription(),
+                        HashMap::new, Collectors.toMap(CommercialBankExchangeRate::getDate, Function.identity())));
+
+        boolean todayDataIsPresent = exchangeRateByBankAndDate.entrySet()
+                .stream()
+                .map(Map.Entry::getValue)
+                .map(map -> map.entrySet())
+                .flatMap(Set::stream)
+                .map(Map.Entry::getKey)
+                .filter(date -> today.equals(date))
+                .findAny().isPresent();
+
+        if (!todayDataIsPresent) {
             LOGGER.info("No hay datos de compra/venta para la fecha actual");
             return "";
         }
@@ -263,13 +287,43 @@ public class EmailSubscriptionService {
 
         BigDecimal currentOfficialExchangeRate = getCurrentOfficialExchangeRate();
 
-        for (CommercialBankExchangeRate exchangeRate : exchangeRates) {
-            String img = String.format(IMG_TEMPLATE, exchangeRate.getBank().getDescription().getShortDescription());
+        for (Map.Entry<String, Map<LocalDate, CommercialBankExchangeRate>> bankEntry : exchangeRateByBankAndDate.entrySet()) {
+            CommercialBankExchangeRate exchangeRateToday = bankEntry.getValue().get(today);
+            CommercialBankExchangeRate exchangeRateYesterday = bankEntry.getValue().get(yesterday);
+
+            if (exchangeRateToday == null) {
+                LOGGER.info("El dia de hoy no se encontraron datos de compra/venta para el banco {}", bankEntry.getKey());
+                continue;
+            }
+
+            String bankLogo = String.format(BANK_LOGO_TEMPLATE, bankEntry.getKey());
+            String tendencyImg = "";
+
+            if (exchangeRateYesterday != null) {
+                String tendency;
+                switch (exchangeRateToday.getSell().compareTo(exchangeRateYesterday.getSell())) {
+                    case -1:
+                        tendency = "down";
+                        break;
+                    case 0:
+                        tendency = "equal";
+                        break;
+                    case 1:
+                        tendency = "up";
+                        break;
+                    default:
+                        tendency = "";
+                }
+
+                tendencyImg = "&nbsp;&nbsp;&nbsp;" + String.format(TENDENCY_INDICATOR, tendency);
+            } else {
+                tendencyImg = "";
+            }
 
             html.tr()
-                    .td(img)
-                    .td(HtmlGenerator.asStrong(exchangeRate.getSell(), exchangeRate.getBestSellPrice()))
-                    .td(HtmlGenerator.asStrong(exchangeRate.getBuy(), exchangeRate.getBestBuyPrice()))
+                    .td(bankLogo)
+                    .td(HtmlGenerator.asStrong(exchangeRateToday.getSell(), exchangeRateToday.getBestSellPrice()) + tendencyImg)
+                    .td(HtmlGenerator.asStrong(exchangeRateToday.getBuy(), exchangeRateToday.getBestBuyPrice()))
                     .td(currentOfficialExchangeRate)
                     .closeTr();
         }
@@ -329,7 +383,7 @@ public class EmailSubscriptionService {
                     emailTask.setUserSubscription(subscription);
                     emailTask.setDate(LocalDateTime.now());
                     emailTaskRepository.save(emailTask);
-                } catch (MessagingException me) {
+                } catch (MessagingException | MailException me) {
                     String error = String.format("Ha ocurrido un error durante el envio del correo electronico a la direccion [%s]",
                             subscription.getEmail());
                     LOGGER.error(error, me);
