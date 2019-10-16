@@ -19,7 +19,7 @@ public class HtmlGenerator {
     private String indentation;
 
     public HtmlGenerator() {
-        this.html = new StringBuilder();
+        this.html = new StringBuilder(2000);
     }
 
     public HtmlGenerator(String initialIndentation) {
@@ -63,18 +63,6 @@ public class HtmlGenerator {
         return this;
     }
 
-    public HtmlGenerator styleAppend(String partialCss) {
-        indent();
-        html.append(indentation).append(escape(partialCss)).append(NEW_LINE);
-        unindent();
-        return this;
-    }
-
-    public HtmlGenerator styleAppend() {
-        html.append(NEW_LINE);
-        return this;
-    }
-
     public HtmlGenerator closeStyle() {
         html.append(indentation).append("</style>").append(NEW_LINE);
         unindent();
@@ -93,10 +81,61 @@ public class HtmlGenerator {
         return this;
     }
 
-    public HtmlGenerator p(String content) {
+    public HtmlGenerator block(String value) {
         indent();
-        html.append(indentation).append("<p>").append(escape(content)).append("</p>").append(NEW_LINE);
+        html.append(indentation).append(escape(value)).append(NEW_LINE);
         unindent();
+        return this;
+    }
+
+    public HtmlGenerator ln() {
+        html.append(NEW_LINE);
+        return this;
+    }
+
+    public HtmlGenerator p() {
+        indent();
+        html.append(indentation).append("<p>");
+        return this;
+    }
+
+    public HtmlGenerator closeP() {
+        html.append("</p>").append(NEW_LINE);
+        unindent();
+        return this;
+    }
+
+    public HtmlGenerator inline(String content) {
+        html.append(escape(content));
+        return this;
+    }
+
+    public HtmlGenerator strong(String content) {
+        strong(content, true);
+        return this;
+    }
+
+    public HtmlGenerator strong(String content, boolean condition) {
+        String escaped = escape(content);
+        if (condition) {
+            html.append("<strong>").append(escaped).append("</strong>");
+        } else {
+            html.append(escaped);
+        }
+        return this;
+    }
+
+    public HtmlGenerator strong(BigDecimal amount, boolean condition) {
+        return strong(amount.toPlainString(), condition);
+    }
+
+    public HtmlGenerator nbsp() {
+        html.append("&nbsp;");
+        return this;
+    }
+
+    public HtmlGenerator href(String link, String text) {
+        html.append("<a href=\"").append(escape(link)).append("\">").append(escape(text)).append("</a>");
         return this;
     }
 
@@ -180,6 +219,26 @@ public class HtmlGenerator {
         return this;
     }
 
+    public HtmlGenerator td() {
+        return td(-1);
+    }
+
+    public HtmlGenerator td(int colspan) {
+        indent();
+        html.append(indentation).append("<td");
+        if (colspan > 0) {
+            html.append(" colspan=\"").append(colspan).append("\"");
+        }
+        html.append(">").append(NEW_LINE);
+        return this;
+    }
+
+    public HtmlGenerator closeTd() {
+        html.append(indentation).append("</td>").append(NEW_LINE);
+        unindent();
+        return this;
+    }
+
     public HtmlGenerator tfoot() {
         indent();
         html.append(indentation).append("<tfoot>").append(NEW_LINE);
@@ -231,14 +290,6 @@ public class HtmlGenerator {
         } else {
             return text;
         }
-    }
-
-    public static String asStrong(String text, boolean condition) {
-        return condition ? String.format("<strong>%s</strong>", text) : text;
-    }
-
-    public static String asStrong(BigDecimal amount, boolean condition) {
-        return asStrong(amount.toPlainString(), condition);
     }
 
 }
