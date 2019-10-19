@@ -176,7 +176,7 @@ public class ExchangeRateImporter {
         Map<String, Bank> banks = StreamSupport.stream(bankRepository.findAll().spliterator(), false)
                 .collect(Collectors.toMap(b -> b.getDescription().getShortDescription(), Function.identity()));
 
-        Map<String, CommercialBankExchangeRate> importedBanks = commercialBankExchangeRateRepository.findAllByDate(LocalDate.now())
+        Map<String, CommercialBankExchangeRate> importedBanks = commercialBankExchangeRateRepository.findByDate(LocalDate.now())
                 .stream()
                 .collect(Collectors.toMap(c -> c.getBank().getDescription().getShortDescription(), Function.identity()));
 

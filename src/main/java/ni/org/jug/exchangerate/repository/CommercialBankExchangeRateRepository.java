@@ -24,9 +24,6 @@ public interface CommercialBankExchangeRateRepository extends CrudRepository<Com
     Optional<CommercialBankExchangeRate> findById(@Param("id") Integer id);
 
     @Query("SELECT c FROM CommercialBankExchangeRate c JOIN FETCH c.currency curr JOIN FETCH c.bank b WHERE c.date = :date")
-    List<CommercialBankExchangeRate> findAllByDate(@Param("date") LocalDate date);
-
-    @Query("SELECT c FROM CommercialBankExchangeRate c JOIN FETCH c.currency curr JOIN FETCH c.bank b WHERE c.date = :date")
     List<CommercialBankExchangeRate> findByDate(@Param("date") LocalDate date);
 
     @Query("SELECT c FROM CommercialBankExchangeRate c JOIN FETCH c.currency curr JOIN FETCH c.bank b WHERE c.date BETWEEN :start AND :end")
