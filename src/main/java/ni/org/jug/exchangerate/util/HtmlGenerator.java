@@ -302,18 +302,19 @@ public class HtmlGenerator {
 
     public static String escape(String text) {
         if (text.contains("%")) {
-            // Se crean muchos objetos String, reescribir metodo
-            int pos = text.indexOf('%');
-            while (pos != -1) {
-                if (!(pos <= text.length() - 2 && text.charAt(pos + 1) == 's') || pos == text.length() - 1) {
-                    text = text.substring(0, pos + 1) + '%' + text.substring(pos + 1);
-                    pos += 2;
+            int length = text.length();
+            char[] chars = text.toCharArray();
+            StringBuilder newText = new StringBuilder(length + 30);
+
+            for (int i = 0; i < length; i++) {
+                if (chars[i] == '%' && (i == length - 1 || chars[i + 1] != 's')) {
+                    newText.append(chars[i]).append('%');
                 } else {
-                    ++pos;
+                    newText.append(chars[i]);
                 }
-                pos = text.indexOf('%', pos);
             }
-            return text;
+
+            return newText.toString();
         } else {
             return text;
         }
