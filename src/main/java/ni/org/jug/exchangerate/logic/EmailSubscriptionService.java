@@ -73,7 +73,7 @@ public class EmailSubscriptionService {
                     .p()
                         .inline("Hola ").strong("%s").inline(", para poder recibir los datos de la compra/venta de d&#243;lares ")
                         .inline("en los bancos comerciales, debe presionar el siguiente enlace: ")
-                        .href("%s", "Presione aqu&#237;").inline(".")
+                        .a("%s", "Presione aqu&#237;").inline(".")
                     .closeP()
                     .div("panel", "note")
                         .p()
@@ -88,7 +88,7 @@ public class EmailSubscriptionService {
     }
 
     private static final HtmlGenerator EMAIL_TEMPLATE_FOR_EXCHANGE_RATE_DATA = new HtmlGenerator();
-    private static final String INDENTATION_AT_INSERTION_POINT;
+    private static final int INDENTATION_LEVEL_AT_INSERTION_POINT;
     static {
         EMAIL_TEMPLATE_FOR_EXCHANGE_RATE_DATA.html5()
                 .head()
@@ -139,12 +139,12 @@ public class EmailSubscriptionService {
                     .closeP()
                     .addPlaceholder("%s");
 
-        INDENTATION_AT_INSERTION_POINT = EMAIL_TEMPLATE_FOR_EXCHANGE_RATE_DATA.getIndentation();
+        INDENTATION_LEVEL_AT_INSERTION_POINT = EMAIL_TEMPLATE_FOR_EXCHANGE_RATE_DATA.getIndentationLevel();
 
         EMAIL_TEMPLATE_FOR_EXCHANGE_RATE_DATA
                     .p()
                         .inline("Si ya no desea seguir recibiendo este correo, recuerde que puede darse de ").strong("baja")
-                        .inline(" en cualquier momento con el siguiente enlace: ").href("%s", "Presione aqu&#237;").inline(".")
+                        .inline(" en cualquier momento con el siguiente enlace: ").a("%s", "Presione aqu&#237;").inline(".")
                     .closeP()
                 .closeBody()
                 .closeHtml();
@@ -285,7 +285,7 @@ public class EmailSubscriptionService {
             return "";
         }
 
-        HtmlGenerator html = new HtmlGenerator(INDENTATION_AT_INSERTION_POINT);
+        HtmlGenerator html = new HtmlGenerator(INDENTATION_LEVEL_AT_INSERTION_POINT);
         html.table()
                 .tr()
                 .th("Banco")
@@ -329,25 +329,24 @@ public class EmailSubscriptionService {
                 tendencyImg = "";
             }
 
-            html
-                    .tr()
-                        .td(bankLogo)
-                        .td()
-                            .strong(exchangeRateToday.getSell(), exchangeRateToday.getBestSellPrice()).nbsp().nbsp().nbsp()
-                            .inline(tendencyImg)
-                        .closeTd()
-                        .td()
-                            .strong(exchangeRateToday.getBuy(), exchangeRateToday.getBestBuyPrice())
-                        .closeTd()
-                        .td(currentOfficialExchangeRate)
+            html.tr()
+                    .td(bankLogo)
+                    .td()
+                        .strong(exchangeRateToday.getSell(), exchangeRateToday.getBestSellPrice()).nbsp().nbsp().nbsp()
+                        .inline(tendencyImg)
+                    .closeTd()
+                    .td()
+                        .strong(exchangeRateToday.getBuy(), exchangeRateToday.getBestBuyPrice())
+                    .closeTd()
+                    .td(currentOfficialExchangeRate)
                     .closeTr();
         }
 
         html.tfoot()
                 .tr()
-                .td(4)
-                    .strong("Nota:").inline(" Las mejores opciones de compra/venta est&#225;n marcadas con ").strong("negrita")
-                .closeTd()
+                    .td(4)
+                        .strong("Nota:").inline(" Las mejores opciones de compra/venta est&#225;n marcadas con ").strong("negrita")
+                    .closeTd()
                 .closeTr()
                 .closeTfoot()
                 .closeTable();

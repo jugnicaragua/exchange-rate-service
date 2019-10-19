@@ -1,6 +1,8 @@
 package ni.org.jug.exchangerate.util;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -12,23 +14,38 @@ public class HtmlGenerator {
 
     private static final String TAB_AS_SPACES = "    ";
     private static final char NEW_LINE = '\n';
+    private static Map<Integer, String> INDENTATION = new HashMap<>();
+    static {
+        INDENTATION.put(0, "");
+        INDENTATION.put(1, "    ");
+        INDENTATION.put(2, "        ");
+        INDENTATION.put(3, "            ");
+        INDENTATION.put(4, "                ");
+        INDENTATION.put(5, "                    ");
+        INDENTATION.put(6, "                        ");
+        INDENTATION.put(7, "                            ");
+        INDENTATION.put(8, "                                ");
+        INDENTATION.put(9, "                                    ");
+        INDENTATION.put(10, "                                        ");
+    }
+
 
     private static final String HTML5_DOCTYPE = "<!DOCTYPE html>";
 
     private final StringBuilder html;
-    private String indentation;
+    private int indentationLevel;
 
     public HtmlGenerator() {
         this.html = new StringBuilder(2000);
     }
 
-    public HtmlGenerator(String initialIndentation) {
+    public HtmlGenerator(int initialIndentationLevel) {
         this();
-        this.indentation = initialIndentation;
+        this.indentationLevel = initialIndentationLevel;
     }
 
-    public String getIndentation() {
-        return indentation;
+    public int getIndentationLevel() {
+        return indentationLevel;
     }
 
     public HtmlGenerator html(String doctype) {
@@ -47,43 +64,43 @@ public class HtmlGenerator {
 
     public HtmlGenerator head() {
         indent();
-        html.append(indentation).append("<head>").append(NEW_LINE);
+        html.append(getIndentation()).append("<head>").append(NEW_LINE);
         return this;
     }
 
     public HtmlGenerator closeHead() {
-        html.append(indentation).append("</head>").append(NEW_LINE);
+        html.append(getIndentation()).append("</head>").append(NEW_LINE);
         unindent();
         return this;
     }
 
     public HtmlGenerator style() {
         indent();
-        html.append(indentation).append("<style>").append(NEW_LINE);
+        html.append(getIndentation()).append("<style>").append(NEW_LINE);
         return this;
     }
 
     public HtmlGenerator closeStyle() {
-        html.append(indentation).append("</style>").append(NEW_LINE);
+        html.append(getIndentation()).append("</style>").append(NEW_LINE);
         unindent();
         return this;
     }
 
     public HtmlGenerator body() {
         indent();
-        html.append(indentation).append("<body>").append(NEW_LINE);
+        html.append(getIndentation()).append("<body>").append(NEW_LINE);
         return this;
     }
 
     public HtmlGenerator closeBody() {
-        html.append(indentation).append("</body>").append(NEW_LINE);
+        html.append(getIndentation()).append("</body>").append(NEW_LINE);
         unindent();
         return this;
     }
 
     public HtmlGenerator block(String value) {
         indent();
-        html.append(indentation).append(escape(value)).append(NEW_LINE);
+        html.append(getIndentation()).append(escape(value)).append(NEW_LINE);
         unindent();
         return this;
     }
@@ -95,7 +112,7 @@ public class HtmlGenerator {
 
     public HtmlGenerator p() {
         indent();
-        html.append(indentation).append("<p>");
+        html.append(getIndentation()).append("<p>");
         return this;
     }
 
@@ -134,14 +151,14 @@ public class HtmlGenerator {
         return this;
     }
 
-    public HtmlGenerator href(String link, String text) {
+    public HtmlGenerator a(String link, String text) {
         html.append("<a href=\"").append(escape(link)).append("\">").append(escape(text)).append("</a>");
         return this;
     }
 
     public HtmlGenerator div(String... cssClasses) {
         indent();
-        html.append(indentation).append("<div");
+        html.append(getIndentation()).append("<div");
         if (cssClasses != null && cssClasses.length > 0) {
             String cssClassesToHtml = Stream.of(cssClasses).collect(Collectors.joining(" ", " class=\"", "\""));
             html.append(cssClassesToHtml);
@@ -151,7 +168,7 @@ public class HtmlGenerator {
     }
 
     public HtmlGenerator closeDiv() {
-        html.append(indentation).append("</div>").append(NEW_LINE);
+        html.append(getIndentation()).append("</div>").append(NEW_LINE);
         unindent();
         return this;
     }
@@ -163,24 +180,24 @@ public class HtmlGenerator {
 
     public HtmlGenerator table() {
         indent();
-        html.append(indentation).append("<table>").append(NEW_LINE);
+        html.append(getIndentation()).append("<table>").append(NEW_LINE);
         return this;
     }
 
     public HtmlGenerator closeTable() {
-        html.append(indentation).append("</table>").append(NEW_LINE);
+        html.append(getIndentation()).append("</table>").append(NEW_LINE);
         unindent();
         return this;
     }
 
     public HtmlGenerator tr() {
         indent();
-        html.append(indentation).append("<tr>").append(NEW_LINE);
+        html.append(getIndentation()).append("<tr>").append(NEW_LINE);
         return this;
     }
 
     public HtmlGenerator closeTr() {
-        html.append(indentation).append("</tr>").append(NEW_LINE);
+        html.append(getIndentation()).append("</tr>").append(NEW_LINE);
         unindent();
         return this;
     }
@@ -191,7 +208,7 @@ public class HtmlGenerator {
 
     public HtmlGenerator th(String text, int colspan) {
         indent();
-        html.append(indentation).append("<th");
+        html.append(getIndentation()).append("<th");
         if (colspan > 0) {
             html.append(" colspan=\"").append(colspan).append("\"");
         }
@@ -210,7 +227,7 @@ public class HtmlGenerator {
 
     public HtmlGenerator td(String text, int colspan) {
         indent();
-        html.append(indentation).append("<td");
+        html.append(getIndentation()).append("<td");
         if (colspan > 0) {
             html.append(" colspan=\"").append(colspan).append("\"");
         }
@@ -225,7 +242,7 @@ public class HtmlGenerator {
 
     public HtmlGenerator td(int colspan) {
         indent();
-        html.append(indentation).append("<td");
+        html.append(getIndentation()).append("<td");
         if (colspan > 0) {
             html.append(" colspan=\"").append(colspan).append("\"");
         }
@@ -234,34 +251,44 @@ public class HtmlGenerator {
     }
 
     public HtmlGenerator closeTd() {
-        html.append(indentation).append("</td>").append(NEW_LINE);
+        html.append(getIndentation()).append("</td>").append(NEW_LINE);
         unindent();
         return this;
     }
 
     public HtmlGenerator tfoot() {
         indent();
-        html.append(indentation).append("<tfoot>").append(NEW_LINE);
+        html.append(getIndentation()).append("<tfoot>").append(NEW_LINE);
         return this;
     }
 
     public HtmlGenerator closeTfoot() {
-        html.append(indentation).append("</tfoot>").append(NEW_LINE);
+        html.append(getIndentation()).append("</tfoot>").append(NEW_LINE);
         unindent();
         return this;
     }
 
     private void indent() {
-        if (indentation == null || indentation.isEmpty()) {
-            indentation = TAB_AS_SPACES;
-        } else {
-            indentation += TAB_AS_SPACES;
-        }
+        ++indentationLevel;
     }
 
     private void unindent() {
-        if (indentation != null && !indentation.isEmpty()) {
-            indentation = indentation.substring(0, indentation.length() - TAB_AS_SPACES.length());
+        --indentationLevel;
+        if (indentationLevel < 0) {
+            indentationLevel = 0;
+        }
+    }
+
+    private String getIndentation() {
+        String indentation = INDENTATION.get(indentationLevel);
+        if (indentation != null) {
+            return indentation;
+        } else {
+            StringBuilder newIndentation = new StringBuilder(indentationLevel*TAB_AS_SPACES.length());
+            for (int i = 0; i < indentationLevel; i++) {
+                newIndentation.append(TAB_AS_SPACES);
+            }
+            return newIndentation.toString();
         }
     }
 
