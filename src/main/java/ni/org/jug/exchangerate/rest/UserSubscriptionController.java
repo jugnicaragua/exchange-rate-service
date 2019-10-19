@@ -44,12 +44,12 @@ public class UserSubscriptionController {
     }
 
     @PostMapping("/email")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void sendEmail() {
+    public String sendEmail() {
         String currentEndpointPath = "/email";
         String currentPath = ServletUriComponentsBuilder.fromCurrentRequest().toUriString();
         String parentPath = currentPath.substring(0, currentPath.length() - currentEndpointPath.length());
         emailSubscriptionService.sendEmailWithExchangeRateData(parentPath);
+        return "Se inicio el proceso de envio de correos";
     }
 
 }
