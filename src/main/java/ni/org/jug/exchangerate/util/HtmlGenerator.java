@@ -307,10 +307,9 @@ public class HtmlGenerator {
             StringBuilder newText = new StringBuilder(length + 30);
 
             for (int i = 0; i < length; i++) {
+                newText.append(chars[i]);
                 if (chars[i] == '%' && (i == length - 1 || chars[i + 1] != 's')) {
-                    newText.append(chars[i]).append('%');
-                } else {
-                    newText.append(chars[i]);
+                    newText.append('%');
                 }
             }
 
