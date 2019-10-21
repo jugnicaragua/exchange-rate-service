@@ -268,6 +268,12 @@ public class HtmlGenerator {
         return this;
     }
 
+    public HtmlGenerator img(String src, String alt, int width, int height) {
+        html.append("<img src=\"").append(src).append("\" alt=\"").append(alt).append("\" width=\"").append(width)
+                .append("px\" height=\"").append(height).append("px\">");
+        return this;
+    }
+
     private void indent() {
         ++indentationLevel;
     }
