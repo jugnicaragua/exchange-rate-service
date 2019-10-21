@@ -27,6 +27,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -173,30 +174,23 @@ public class ExchangeRateImporter {
 
     @Scheduled(cron = "15 0 4,6,16,20 * * *")
     public void importCurrentCommercialBankData() {
-        Map<String, Bank> banks = StreamSupport.stream(bankRepository.findAll().spliterator(), false)
+        Map<String, Bank> banksGroupedById = StreamSupport.stream(bankRepository.findAll().spliterator(), false)
                 .collect(Collectors.toMap(b -> b.getDescription().getShortDescription(), Function.identity()));
 
-        Map<String, CommercialBankExchangeRate> importedBanks = commercialBankExchangeRateRepository.findByDate(LocalDate.now())
-                .stream()
+        List<CommercialBankExchangeRate> previouslyImportedData = commercialBankExchangeRateRepository.findByDate(LocalDate.now());
+        Map<String, CommercialBankExchangeRate> previouslyImportedDataByBankId = previouslyImportedData.stream()
                 .collect(Collectors.toMap(c -> c.getBank().getDescription().getShortDescription(), Function.identity()));
 
-        for (Map.Entry<String, Bank> bankEntry : banks.entrySet()) {
-            for (Cookie cookie : bankEntry.getValue().getCookies()) {
-                ExecutionContext.getInstance().addOrReplaceCookie(bankEntry.getKey(), cookie.getName(), cookie.getValue());
-            }
-        }
-
-        ExchangeRateClient client = new ExchangeRateClient();
-        for (ExchangeRateTrade trade : client.commercialBanktrades()) {
+        for (ExchangeRateTrade trade : currentCommercialBankTrades(banksGroupedById, previouslyImportedData)) {
             CommercialBankExchangeRate cbExchangeRate;
 
-            if (!importedBanks.containsKey(trade.bank())) {
+            if (!previouslyImportedDataByBankId.containsKey(trade.bank())) {
                 LOGGER.info("Banco Comercial - Importando los datos de compra/venta de {}", trade.bank());
 
                 cbExchangeRate = new CommercialBankExchangeRate();
                 cbExchangeRate.setCurrency(dollar);
-                cbExchangeRate.setBank(banks.get(trade.bank()));
-                cbExchangeRate.setDate(LocalDate.now());
+                cbExchangeRate.setBank(banksGroupedById.get(trade.bank()));
+                cbExchangeRate.setDate(trade.date());
                 cbExchangeRate.setSell(trade.sell());
                 cbExchangeRate.setBuy(trade.buy());
                 cbExchangeRate.setBestSellPrice(trade.isBestSellPrice());
@@ -206,13 +200,38 @@ public class ExchangeRateImporter {
             } else {
                 LOGGER.info("Banco Comercial - Actualizando los datos de compra/venta de {}", trade.bank());
 
-                cbExchangeRate = importedBanks.get(trade.bank());
+                cbExchangeRate = previouslyImportedDataByBankId.get(trade.bank());
                 cbExchangeRate.setSell(trade.sell());
                 cbExchangeRate.setBuy(trade.buy());
                 cbExchangeRate.setBestSellPrice(trade.isBestSellPrice());
                 cbExchangeRate.setBestBuyPrice(trade.isBestBuyPrice());
             }
         }
+    }
+
+    private List<ExchangeRateTrade> currentCommercialBankTrades(Map<String, Bank> banksGroupedById,
+            List<CommercialBankExchangeRate> previouslyImportedData) {
+        for (Map.Entry<String, Bank> bankEntry : banksGroupedById.entrySet()) {
+            for (Cookie cookie : bankEntry.getValue().getCookies()) {
+                ExecutionContext.getInstance().addOrReplaceCookie(bankEntry.getKey(), cookie.getName(), cookie.getValue());
+            }
+        }
+
+        ExchangeRateClient client = new ExchangeRateClient();
+        List<ExchangeRateTrade> currentData = client.commercialBankTrades();
+        List<ExchangeRateTrade> mergedData = new ArrayList<>(currentData);
+
+        for (CommercialBankExchangeRate dbTrade : previouslyImportedData) {
+            ExchangeRateTrade trade = new ExchangeRateTrade(dbTrade.getBank().getDescription().getShortDescription(), dbTrade.getDate(),
+                    dbTrade.getBuy(), dbTrade.getSell());
+            if (!mergedData.contains(trade)) {
+                LOGGER.info("Agregando los datos del banco {} a los resultados devueltos por el scraper", trade.bank());
+
+                mergedData.add(trade);
+            }
+        }
+
+        return client.commercialBankTrades(mergedData);
     }
 
 }
