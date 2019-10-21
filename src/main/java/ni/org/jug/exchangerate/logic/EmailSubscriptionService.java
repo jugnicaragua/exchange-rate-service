@@ -16,7 +16,6 @@ import ni.org.jug.exchangerate.util.HtmlGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -153,8 +152,7 @@ public class EmailSubscriptionService {
 
     private static final String HORIZONTAL_RULE =
             "----------------------------------------------------------------------------------------------------";
-    private static final String BANK_LOGO_TEMPLATE = "<img src=\"cid:%1$s\" alt=\"%1$s\" width=\"40px\" height=\"40px\">";
-    private static final String TENDENCY_INDICATOR = "<img src=\"cid:%s\" width=\"15px\" height=\"15px\">";
+    private static final String BASE_URL_TO_IMAGES = "https://javanicaragua.org/wp-content/uploads/2019/10/";
     private static final DateTimeFormatter NIO_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-uuuu");
 
     @Autowired
@@ -176,18 +174,18 @@ public class EmailSubscriptionService {
     JavaMailSender mailSender;
 
     private AtomicInteger counter = new AtomicInteger();
-    private Map<String, ClassPathResource> logos = new HashMap<>();
+    private Map<String, String> images = new HashMap<>();
 
     @PostConstruct
     public void init() {
         for (Bank bank : bankRepository.findAll()) {
             String key = bank.getDescription().getShortDescription();
-            String path = key + ".png";
-            logos.put(key, new ClassPathResource(path));
+            String path = BASE_URL_TO_IMAGES + key + ".png";
+            images.put(key, path);
         }
-        logos.put("up", new ClassPathResource("up.png"));
-        logos.put("equal", new ClassPathResource("equal.png"));
-        logos.put("down", new ClassPathResource("down.png"));
+        images.put("up", BASE_URL_TO_IMAGES + "up.png");
+        images.put("equal", BASE_URL_TO_IMAGES + "equal.png");
+        images.put("down", BASE_URL_TO_IMAGES + "down.png");
     }
 
     private String generateToken() {
@@ -306,11 +304,9 @@ public class EmailSubscriptionService {
                 continue;
             }
 
-            String bankLogo = String.format(BANK_LOGO_TEMPLATE, bankEntry.getKey());
-            String tendencyImg = "";
+            String tendency = "";
 
             if (exchangeRateYesterday != null) {
-                String tendency;
                 switch (exchangeRateToday.getSell().compareTo(exchangeRateYesterday.getSell())) {
                     case -1:
                         tendency = "down";
@@ -324,17 +320,15 @@ public class EmailSubscriptionService {
                     default:
                         tendency = "";
                 }
-
-                tendencyImg = String.format(TENDENCY_INDICATOR, tendency);
-            } else {
-                tendencyImg = "";
             }
 
             html.tr()
-                    .td(bankLogo)
+                    .td()
+                        .img(images.get(bankEntry.getKey()), bankEntry.getKey(), 40, 40)
+                    .closeTd()
                     .td()
                         .strong(exchangeRateToday.getSell(), exchangeRateToday.getBestSellPrice()).nbsp().nbsp().nbsp()
-                        .inline(tendencyImg)
+                        .img(images.get(tendency), tendency, 15, 15)
                     .closeTd()
                     .td()
                         .strong(exchangeRateToday.getBuy(), exchangeRateToday.getBestBuyPrice())
@@ -385,14 +379,10 @@ public class EmailSubscriptionService {
                 MimeMessage message = mailSender.createMimeMessage();
 
                 try {
-                    MimeMessageHelper messageHelper = new MimeMessageHelper(message, true);
+                    MimeMessageHelper messageHelper = new MimeMessageHelper(message);
                     messageHelper.setTo(subscription.getEmail());
                     messageHelper.setSubject("Datos de la compra/venta de dolares en los Bancos Comerciales");
                     messageHelper.setText(emailContent, true);
-
-                    for (Map.Entry<String, ClassPathResource> logoEntry : logos.entrySet()) {
-                        messageHelper.addInline(logoEntry.getKey(), logoEntry.getValue());
-                    }
 
                     mailSender.send(message);
 
