@@ -1,3 +1,5 @@
+Este es un projecto de @JUGNicaragua, el grupo de usuarios Java de Nicaragua.
+
 # Getting Started
 
 ### Reference Documentation
@@ -13,3 +15,17 @@ The following guides illustrate how to use some features concretely:
 * [Building REST services with Spring](https://spring.io/guides/tutorials/bookmarks/)
 * [Accessing Data with JPA](https://spring.io/guides/gs/accessing-data-jpa/)
 
+
+
+
+## Licencia
+
+This software is covered under the MIT Licence (http://opensource.org/licenses/MIT).
+
+Puedes leer el archivo de la licencia en [LICENSE][license]
+
+Copyright (c) 2018-present, JUG Nicaragua Armando Alaniz  (https://www.javanicaragua.org/nuestro-equipo/)
+
+**Free Software, Hell Yeah!**
+
+[license]: LICENSE.txt
