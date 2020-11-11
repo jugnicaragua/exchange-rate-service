@@ -1,11 +1,12 @@
 package ni.org.jug.exchangerate.logic;
 
+import ni.jug.exchangerate.CentralBankScraper;
+import ni.jug.exchangerate.CommercialBank;
 import ni.jug.exchangerate.ExchangeRateClient;
-import ni.jug.exchangerate.cb.CommercialBank;
-import ni.jug.exchangerate.cb.ExchangeRateTrade;
-import ni.jug.exchangerate.cb.ExecutionContext;
-import ni.jug.exchangerate.ncb.MonthlyExchangeRate;
-import ni.jug.exchangerate.ncb.NiCentralBankExchangeRateClient;
+import ni.jug.exchangerate.ExchangeRateException;
+import ni.jug.exchangerate.ExchangeRateTrade;
+import ni.jug.exchangerate.ExecutionContext;
+import ni.jug.exchangerate.MonthlyExchangeRate;
 import ni.org.jug.exchangerate.model.Bank;
 import ni.org.jug.exchangerate.model.CentralBankExchangeRate;
 import ni.org.jug.exchangerate.model.CommercialBankExchangeRate;
@@ -92,16 +93,15 @@ public class ExchangeRateImporter {
         return centralBankDataImported(period, period);
     }
 
-    public void importHistoricalCentralBankDataUntilNow() {
-        YearMonth processingPeriod = YearMonth.of(NiCentralBankExchangeRateClient.MINIMUM_YEAR, 1);
+    public void importHistoricalCentralBankDataUntilNow() throws ExchangeRateException {
+        YearMonth processingPeriod = YearMonth.of(CentralBankScraper.MINIMUM_YEAR, 1);
         YearMonth endPeriod = YearMonth.now();
 
         if (!centralBankDataImported(processingPeriod, endPeriod)) {
-            ExchangeRateClient client = new ExchangeRateClient();
             while (processingPeriod.compareTo(endPeriod) <= 0) {
                 LOGGER.info("BCN - Importando periodo {}", processingPeriod);
 
-                MonthlyExchangeRate monthlyExchangeRate = client.getOfficialMonthlyExchangeRate(processingPeriod);
+                MonthlyExchangeRate monthlyExchangeRate = ExchangeRateClient.getOfficialMonthlyExchangeRate(processingPeriod);
                 for (Map.Entry<LocalDate, BigDecimal> exchangeRate : monthlyExchangeRate) {
                     CentralBankExchangeRate centralBankExchangeRate = centralBankExchangeRateOf(exchangeRate.getKey(),
                             exchangeRate.getValue());
@@ -117,7 +117,7 @@ public class ExchangeRateImporter {
         Map<String, Bank> banks = StreamSupport.stream(bankRepository.findAll().spliterator(), false)
                 .collect(Collectors.toMap(bank -> bank.getDescription().getShortDescription(), Function.identity()));
 
-        for (CommercialBank commercialBank : ExchangeRateClient.commercialBanks()) {
+        for (CommercialBank commercialBank : ExchangeRateClient.commercialBanksCatalogue()) {
             Bank bank;
 
             if (banks.containsKey(commercialBank.getId())) {
@@ -139,7 +139,7 @@ public class ExchangeRateImporter {
             }
         }
 
-        List<String> supportedBanks = ExchangeRateClient.commercialBanks().stream()
+        List<String> supportedBanks = ExchangeRateClient.commercialBanksCatalogue().stream()
                 .map(CommercialBank::getId)
                 .collect(Collectors.toList());
 
@@ -155,12 +155,11 @@ public class ExchangeRateImporter {
     }
 
     @Scheduled(cron = "0 15 6,16,22 21-31 * ?")
-    public void importCentralBankDataForNextPeriod() {
+    public void importCentralBankDataForNextPeriod() throws ExchangeRateException {
         YearMonth nextPeriod = YearMonth.now().plusMonths(1);
 
         if (!centralBankDataImported(nextPeriod)) {
-            ExchangeRateClient client = new ExchangeRateClient();
-            MonthlyExchangeRate monthlyExchangeRate = client.getOfficialMonthlyExchangeRate(nextPeriod);
+            MonthlyExchangeRate monthlyExchangeRate = ExchangeRateClient.getOfficialMonthlyExchangeRate(nextPeriod);
 
             LOGGER.info("BCN - Importando proximo periodo {}", nextPeriod);
 
@@ -217,8 +216,7 @@ public class ExchangeRateImporter {
             }
         }
 
-        ExchangeRateClient client = new ExchangeRateClient();
-        List<ExchangeRateTrade> currentData = client.commercialBankTrades();
+        List<ExchangeRateTrade> currentData = ExchangeRateClient.getCommercialBankTrades();
         List<ExchangeRateTrade> mergedData = new ArrayList<>(currentData);
 
         for (CommercialBankExchangeRate dbTrade : previouslyImportedData) {
@@ -231,7 +229,7 @@ public class ExchangeRateImporter {
             }
         }
 
-        return client.commercialBankTrades(mergedData);
+        return ExchangeRateClient.recalculateBestOptions(mergedData);
     }
 
 }
