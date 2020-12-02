@@ -14,7 +14,7 @@
     <description>Servicio RESTful donde se exponen los datos de la tasa de cambio del BCN y compra/venta de los bancos comerciales</description>
 
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
 
         <!-- Dependency versions -->
         <pg.jdbc.version>42.2.5</pg.jdbc.version>
