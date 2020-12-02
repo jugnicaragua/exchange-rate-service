@@ -14,7 +14,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PastOrPresent;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -126,7 +126,7 @@ public class CommercialBankExchangeRate extends IntegerSerialIdentifier {
 
     @JsonValue
     public Map<String, Object> asMap() {
-        Map<String, Object> dto = new HashMap<>();
+        Map<String, Object> dto = new LinkedHashMap<>();
         dto.put("id", id);
         dto.put("currency", currency.getShortDescriptionAndSymbol());
         dto.put("bank", bank.getDescription().getShortDescription());

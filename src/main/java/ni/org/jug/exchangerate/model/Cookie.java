@@ -9,7 +9,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -60,7 +60,7 @@ public class Cookie extends IntegerSerialIdentifier {
 
     @JsonValue
     public Map<String, Object> asMap() {
-        Map<String, Object> dto = new HashMap<>();
+        Map<String, Object> dto = new LinkedHashMap<>();
         dto.put("id", id);
         dto.put("name", name);
         dto.put("value", value);

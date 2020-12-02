@@ -12,7 +12,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -80,7 +80,7 @@ public class CentralBankExchangeRate extends Identifier<Integer> {
 
     @JsonValue
     public Map<String, Object> asMap() {
-        Map<String, Object> dto = new HashMap<>();
+        Map<String, Object> dto = new LinkedHashMap<>();
         dto.put("id", id);
         dto.put("currency", currency.getShortDescriptionAndSymbol());
         dto.put("date", date);

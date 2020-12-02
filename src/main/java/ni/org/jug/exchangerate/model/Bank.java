@@ -15,8 +15,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -111,7 +111,7 @@ public class Bank extends IntegerSerialIdentifier {
 
     @JsonValue
     public Map<String, Object> asMap() {
-        Map<String, Object> dto = new HashMap<>();
+        Map<String, Object> dto = new LinkedHashMap<>();
         dto.put("id", id);
         dto.put("shortDescription", description.getShortDescription());
         dto.put("description", description.getDescription());
