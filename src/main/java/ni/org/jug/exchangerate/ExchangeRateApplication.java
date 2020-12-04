@@ -5,6 +5,7 @@ import ni.org.jug.exchangerate.logic.ExchangeRateImporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -30,6 +31,9 @@ public class ExchangeRateApplication {
     @Autowired
     ExchangeRateImporter importer;
 
+    @Value("${data.import.skip:true}")
+    Boolean skipInitialImport;
+
     public static void main(String[] args) {
         SpringApplication.run(ExchangeRateApplication.class, args);
     }
@@ -37,7 +41,9 @@ public class ExchangeRateApplication {
     @Bean
     public CommandLineRunner importInitialData() {
         return args -> {
-            doImportCentralBankData();
+            if (!skipInitialImport) {
+                doImportCentralBankData();
+            }
             doImportCommercialBankData();
         };
     }
@@ -70,10 +76,12 @@ public class ExchangeRateApplication {
     private void doImportCommercialBankData() {
         importer.importListOfSupportedBanks();
 
-        try {
-            importer.importCurrentCommercialBankData();
-        } catch (IllegalArgumentException ex) {
-            LOGGER.error("Ocurrio un error durante la importacion de la compra/venta del dia de hoy [{}]", LocalDate.now());
+        if (!skipInitialImport) {
+            try {
+                importer.importCurrentCommercialBankData();
+            } catch (IllegalArgumentException ex) {
+                LOGGER.error("Ocurrio un error durante la importacion de la compra/venta del dia de hoy [{}]", LocalDate.now());
+            }
         }
     }
 }
