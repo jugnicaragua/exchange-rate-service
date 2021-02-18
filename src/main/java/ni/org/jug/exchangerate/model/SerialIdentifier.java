@@ -30,7 +30,10 @@ public abstract class SerialIdentifier<T extends Number> {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof SerialIdentifier)) {
+        if (obj == null) {
+            return false;
+        }
+        if (!getClass().equals(obj.getClass())) {
             return false;
         }
         SerialIdentifier<?> other = (SerialIdentifier<?>) obj;

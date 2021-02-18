@@ -29,7 +29,10 @@ public abstract class Identifier<T> {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof Identifier)) {
+        if (obj == null) {
+            return false;
+        }
+        if (!getClass().equals(obj.getClass())) {
             return false;
         }
         Identifier<?> other = (Identifier<?>) obj;
