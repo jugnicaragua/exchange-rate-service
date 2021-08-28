@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>ni.org.jug</groupId>
+    <groupId>org.jugnicaragua</groupId>
     <artifactId>exchange-rate-service</artifactId>
     <version>1.0-SNAPSHOT</version>
     <description>Servicio RESTful donde se exponen los datos de la tasa de cambio del BCN y compra/venta de los bancos comerciales</description>
@@ -42,13 +42,31 @@
 
         <!-- Dependency versions -->
         <pg.jdbc.version>42.2.5</pg.jdbc.version>
-        <exchange.rate.client.version>2.0-SNAPSHOT</exchange.rate.client.version>
 
         <!-- SONAR. -->
         <sonar.organization>jugnicaragua</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+
+        <repository>
+            <id>github</id>
+            <!-- https://raw.github.com/YOUR-USERNAME/YOUR-PROJECT-NAME/mvn-repo/</url   -->
+            <!-- https://maven.pkg.github.com/jugnicaragua/exchange-rate-client/org/jugnicaragua/exchange-rate-client/maven-metadata.xml -->
+            <url>https://maven.pkg.github.com/jugnicaragua/exchange-rate-client/org/jugnicaragua/exchange-rate-client/maven-metadata.xml</url>
+
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -87,12 +105,14 @@
 
         <!-- JUG NICARAGUA  -->
         <dependency>
-            <groupId>ni.jug</groupId>
+            <groupId>org.jugnicaragua</groupId>
             <artifactId>exchange-rate-client</artifactId>
             <version>2.0-SNAPSHOT</version>
         </dependency>
 
     </dependencies>
+
+
 
     <build>
         <plugins>
