@@ -43,7 +43,7 @@
 
         <!-- Dependency versions -->
         <pg.jdbc.version>42.2.5</pg.jdbc.version>
-        <exchange.rate.client.version>4.0-SNAPSHOT</exchange.rate.client.version>
+        <exchange.rate.client.version>2.0-SNAPSHOT</exchange.rate.client.version>
 
         <!-- SONAR. -->
         <sonar.organization>jugnicaragua</sonar.organization>
