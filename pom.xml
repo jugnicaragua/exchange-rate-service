@@ -42,12 +42,24 @@
 
         <!-- Dependency versions -->
         <pg.jdbc.version>42.2.5</pg.jdbc.version>
-        <exchange.rate.client.version>2.0-SNAPSHOT</exchange.rate.client.version>
+        <exchange.rate.client.version>4.0-SNAPSHOT</exchange.rate.client.version>
 
         <!-- SONAR. -->
         <sonar.organization>jugnicaragua</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>exchange-rate-client</id>
+            <!-- https://raw.github.com/YOUR-USERNAME/YOUR-PROJECT-NAME/mvn-repo/</url   -->
+            <url>https://raw.githubusercontent.com/jugnicaragua/exchange-rate-client/master/pom.xml</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 
 
     <dependencies>
@@ -93,6 +105,8 @@
         </dependency>
 
     </dependencies>
+
+
 
     <build>
         <plugins>
