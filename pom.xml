@@ -54,8 +54,8 @@
             <id>github</id>
             <!-- https://raw.github.com/YOUR-USERNAME/YOUR-PROJECT-NAME/mvn-repo/</url   -->
             <!-- https://maven.pkg.github.com/jugnicaragua/exchange-rate-client/org/jugnicaragua/exchange-rate-client/maven-metadata.xml -->
-            <url>https://maven.pkg.github.com/jugnicaragua/exchange-rate-client/org/jugnicaragua/exchange-rate-client/</url>
-
+            <!-- https://maven.pkg.github.com/jugnicaragua/*/org/jugnicaragua/exchange-rate-client/2.0-SNAPSHOT/exchange-rate-client-2.0-20210828.072902-1.jar -->
+            <url>https://maven.pkg.github.com/jugnicaragua/*/</url>
             <snapshots>
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
