@@ -43,7 +43,7 @@
         <!-- Dependency versions -->
         <pg.jdbc.version>42.2.5</pg.jdbc.version>
 
-        <!-- SONAR. -->
+        <!-- SONAR... -->
         <sonar.organization>jugnicaragua</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
