@@ -19,7 +19,7 @@
         <!-- Dependency versions -->
         <pg.jdbc.version>42.2.5</pg.jdbc.version>
         <exchange.rate.client.version>3.0-SNAPSHOT</exchange.rate.client.version>
-        <!-- SONAR -->
+        <!-- SONAR. -->
           <sonar.organization>jugnicaragua</sonar.organization>
           <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
