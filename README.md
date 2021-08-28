@@ -1,5 +1,9 @@
 # Getting Started
 
+# About
+Servicio RESTful para interactuar con el tipo de cambio oficial y compra/venta de divisas en los Bancos Comerciales.
+
+
 ### Reference Documentation
 For further reference, please consider the following sections:
 
