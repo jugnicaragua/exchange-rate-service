@@ -42,26 +42,22 @@
 
         <!-- Dependency versions -->
         <pg.jdbc.version>42.2.5</pg.jdbc.version>
+        <exchange.rate.client.version>4.0-SNAPSHOT</exchange.rate.client.version>
 
-        <!-- SONAR... -->
+        <!-- SONAR -->
         <sonar.organization>jugnicaragua</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     </properties>
 
     <repositories>
-
         <repository>
             <id>github</id>
-            <!-- https://raw.github.com/YOUR-USERNAME/YOUR-PROJECT-NAME/mvn-repo/</url   -->
-            <!-- https://maven.pkg.github.com/jugnicaragua/exchange-rate-client/org/jugnicaragua/exchange-rate-client/maven-metadata.xml -->
-            <!-- https://maven.pkg.github.com/jugnicaragua/*/org/jugnicaragua/exchange-rate-client/2.0-SNAPSHOT/exchange-rate-client-2.0-20210828.072902-1.jar -->
             <url>https://maven.pkg.github.com/jugnicaragua/*/</url>
             <snapshots>
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
-
     </repositories>
 
     <dependencies>
@@ -91,23 +87,18 @@
             <artifactId>postgresql</artifactId>
             <version>${pg.jdbc.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.jugnicaragua</groupId>
+            <artifactId>exchange-rate-client</artifactId>
+            <version>${exchange.rate.client.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
-
-        <!-- JUG NICARAGUA  -->
-        <dependency>
-            <groupId>org.jugnicaragua</groupId>
-            <artifactId>exchange-rate-client</artifactId>
-            <version>2.0-SNAPSHOT</version>
-        </dependency>
-
     </dependencies>
-
 
     <build>
         <plugins>
@@ -117,5 +108,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
