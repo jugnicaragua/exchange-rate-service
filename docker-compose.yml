@@ -28,6 +28,7 @@ services:
       - EXCHANGE_RATE_DB_PASSWORD=exchangerate
       - EXCHANGE_RATE_EMAIL_USER=test@test.com
       - EXCHANGE_RATE_EMAIL_PASSWORD=test
+    restart: always
     command: java -Duser.timezone=America/Managua -jar exchange-rate-service.jar
     depends_on:
       - postgres
