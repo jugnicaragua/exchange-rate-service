@@ -1,3 +1,9 @@
+[![Build](https://github.com/jugnicaragua/exchange-rate-service/actions/workflows/build.yml/badge.svg?event=check_run)](https://github.com/jugnicaragua/exchange-rate-service/actions/workflows/build.yml)
+
+[![Docker Image CI](https://github.com/jugnicaragua/exchange-rate-service/actions/workflows/dockerimage.yml/badge.svg)](https://github.com/jugnicaragua/exchange-rate-service/actions/workflows/dockerimage.yml)
+
+
+
 # Getting Started
 
 # About
