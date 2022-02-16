@@ -41,7 +41,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
 
         <!-- Dependency versions -->
-        <pg.jdbc.version>42.2.5</pg.jdbc.version>
+        <pg.jdbc.version>42.3.3</pg.jdbc.version>
         <exchange.rate.client.version>4.0-SNAPSHOT</exchange.rate.client.version>
 
         <!-- SONAR -->
